@@ -1,11 +1,10 @@
-from hashlib import new
 from typing import Union
 import random
 import os
 import time
 def clear(): return os.system('clear')
 
-# TODO handle soft hands
+# TODO handle betting
 
 
 original_deck = (
@@ -100,13 +99,16 @@ def shuffle_deck(og_deck: tuple) -> list:
 
 def main_menu(dealers_cards: list, players_cards: list, shuffled_deck: list) -> Union[int, None]:
     player_count = count_player_cards(players_cards)
-    while player_count <= 21:
+    while True:
         dealer_face = dealers_cards[0]
         print(f"The dealer is showing a {display_card_info(dealer_face)}")
         print("You have: ")
         for card in players_cards:
             print(display_card_info(card))
-        print(f"Your hand total is: {player_count}")
+        true_player_count = player_count[0]
+        while true_player_count > 21 and player_count[1] is True:
+            true_player_count -= 10
+        print(f"Your hand total is: {true_player_count}")
         print("1. Stay")
         print("2. Hit")
         print("3. Quit")
@@ -123,8 +125,8 @@ def main_menu(dealers_cards: list, players_cards: list, shuffled_deck: list) -> 
                 player_hit = hit(players_cards, shuffled_deck)
                 print(f"You drew a {player_hit}")
                 player_count = count_player_cards(players_cards)
-                if player_count > 21:
-                    print("You Bust!")
+                if player_count[0] > 21 and player_count[1] is False:
+                    print("You Busted!")
                     time.sleep(2)
                     return 1
             if int(user_input) == 3:
@@ -133,8 +135,13 @@ def main_menu(dealers_cards: list, players_cards: list, shuffled_deck: list) -> 
             print("Invalid input")
 
 
-def count_player_cards(player_cards: list) -> int:
+# should return 12 is_soft = false
+
+
+def count_player_cards(player_cards: list) -> list:
     sum = 0
+    is_soft = False
+    amount_of_aces = 0
     for card in player_cards:
         card_value = card[1]
         if card_value <= 10:
@@ -142,8 +149,17 @@ def count_player_cards(player_cards: list) -> int:
         elif card_value >= 11 and card_value < 14:
             sum += 10
         else:
-            sum += 11
-    return sum
+            amount_of_aces += 1
+            if sum <= 10:
+                is_soft = True
+                sum += 11
+            else:
+                sum += 1
+
+        if sum > 21 and is_soft is True:
+            sum -= 10
+            is_soft = False
+    return [sum, is_soft]
 
 
 def hit(players_cards: list, shuffled_deck: list) -> str:
@@ -152,29 +168,50 @@ def hit(players_cards: list, shuffled_deck: list) -> str:
     return display_card_info(card_drew)
 
 
-def play_dealers_hand(dealers_cards: list, shuffled_cards: list) -> int:
+def play_dealers_hand(dealers_cards: list, shuffled_cards: list) -> tuple:
     dealer_total = count_player_cards(dealers_cards)
-    while dealer_total <= 16:
+    is_dealer_hand_soft = dealer_total[1]
+    # dealer stops at soft 17
+    if is_dealer_hand_soft is True and dealer_total[0] >= 17 and dealer_total[0] <= 21:
+        return dealer_total
+    true_dealer_total = dealer_total[0]
+    while true_dealer_total <= 16:
         dealer_hit = hit(dealers_cards, shuffled_cards)
         dealer_total = count_player_cards(dealers_cards)
+        true_dealer_total = dealer_total[0]
+        is_dealer_hand_soft = dealer_total[1]
+        if is_dealer_hand_soft is True and true_dealer_total > 21:
+            true_dealer_total -= 10
+        if is_dealer_hand_soft is True and true_dealer_total >= 17 and true_dealer_total <= 21:
+            return dealer_total
         print(f"The dealer drew a {dealer_hit}")
     return dealer_total
 
 
 def compare_hands(dealers_count: int, players_count: int) -> None:
-    if dealers_count > 21:
-        print(f"dealer busted with {dealers_count}")
+    if dealers_count[0] > 21 and dealers_count[1] is False:
+        print(f"dealer busted with {dealers_count[0]}")
         print("you win")
+        return
+    if dealers_count[0] > 21 and dealers_count[1] is True and dealers_count[0] - 10 > 21:
+        print(f"dealer busted with {dealers_count[0]}")
+        print("you win")
+        return
     else:
-        if dealers_count < players_count:
+        if dealers_count[1] is True and dealers_count[0] > 21:
+            dealers_count[0] -= 10
+        if players_count[1] is True and players_count[0] > 21:
+            players_count[0] -= 10
+
+        if dealers_count[0] < players_count[0]:
             print(
-                f"You win with {players_count} against dealers: {dealers_count}")
-        elif dealers_count > players_count:
+                f"You win with {players_count[0]} against dealers: {dealers_count[0]}")
+        elif dealers_count[0] > players_count[0]:
             print(
-                f"You lose with {players_count} against dealers: {dealers_count}")
-        elif dealers_count == players_count:
+                f"You lose with {players_count[0]} against dealers: {dealers_count[0]}")
+        elif dealers_count[0] == players_count[0]:
             print(
-                f"You push with {players_count} against dealers: {dealers_count}")
+                f"You push with {players_count[0]} against dealers: {dealers_count[0]}")
 
 
 # setup the inital game
@@ -210,17 +247,17 @@ while True:
         time.sleep(2)
         clear()
 
-        shuffled_deck = shuffle_deck(original_deck)
+    shuffled_deck = shuffle_deck(original_deck)
 
-        dealers_cards = []
-        dealers_cards.append(shuffled_deck.pop())
-        dealers_cards.append(shuffled_deck.pop())
-        players_cards = []
-        players_cards.append(shuffled_deck.pop())
-        players_cards.append(shuffled_deck.pop())
+    dealers_cards = []
+    dealers_cards.append(shuffled_deck.pop())
+    dealers_cards.append(shuffled_deck.pop())
+    players_cards = []
+    players_cards.append(shuffled_deck.pop())
+    players_cards.append(shuffled_deck.pop())
 
     if game == None:
         break
 
 
-#main_menu(dealers_cards[0], players_cards)
+# main_menu(dealers_cards[0], players_cards)
