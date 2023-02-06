@@ -106,9 +106,8 @@ def main_menu(dealers_cards: list, players_cards: list, shuffled_deck: list) -> 
         for card in players_cards:
             print(display_card_info(card))
         true_player_count = player_count[0]
-        while true_player_count > 21 and player_count[1] is True:
-            true_player_count -= 10
-        print(f"Your hand total is: {true_player_count}")
+        print(
+            f"Your hand total is: {'Soft' if player_count[1] == True else ''} {true_player_count}")
         print("1. Stay")
         print("2. Hit")
         print("3. Quit")
@@ -133,9 +132,6 @@ def main_menu(dealers_cards: list, players_cards: list, shuffled_deck: list) -> 
                 return None
         else:
             print("Invalid input")
-
-
-# should return 12 is_soft = false
 
 
 def count_player_cards(player_cards: list) -> list:
@@ -171,9 +167,12 @@ def hit(players_cards: list, shuffled_deck: list) -> str:
 def play_dealers_hand(dealers_cards: list, shuffled_cards: list) -> tuple:
     dealer_total = count_player_cards(dealers_cards)
     is_dealer_hand_soft = dealer_total[1]
+    print(f"The Dealer flipped a {display_card_info(dealers_cards[1])}")
+    print(f"dealer total is: {dealer_total[0]}")
     # dealer stops at soft 17
     if is_dealer_hand_soft is True and dealer_total[0] >= 17 and dealer_total[0] <= 21:
         return dealer_total
+    time.sleep(2)
     true_dealer_total = dealer_total[0]
     while true_dealer_total <= 16:
         dealer_hit = hit(dealers_cards, shuffled_cards)
