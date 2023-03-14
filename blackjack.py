@@ -194,7 +194,7 @@ def compare_hands(dealers_count: int, players_count: int) -> None:
         return
     if dealers_count[0] > 21 and dealers_count[1] is True and dealers_count[0] - 10 > 21:
         print(f"dealer busted with {dealers_count[0]}")
-        print("you win")
+        print("you win!")
         return
     else:
         if dealers_count[1] is True and dealers_count[0] > 21:
